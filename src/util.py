@@ -20,34 +20,45 @@ def hf_clip_predict(model, processor, text_labels, images):
     probs = logits_per_image.softmax(dim=1)
     return probs
 
-def get_images_from_ids(data_dir, article_ids):
+def get_image_paths_and_labels_ordered(df, data_dir):
+    article_ids = df["article_id"].values
+    image_paths = []
+    labels = []
     for article_id in article_ids:
         image_path = f"{data_dir}/images/0{str(article_id)[:2]}/0{article_id}.jpg"
         if os.path.exists(image_path):
-            image = np.array(Image.open(image_path))
-            yield image, article_id
+            image_paths.append(image_path)
+            labels.append(df[df["article_id"] == article_id])
+    
+    return image_paths, labels
 
-def get_images_recursive(data_dir):
+def get_image_paths_and_labels(df, data_dir):
+    image_paths = []
+    labels = []
     for root, dirs, files in os.walk(data_dir):
         for file in files:
             if file.endswith(".jpg"):
                 image_path = os.path.join(root, file)
-                image = np.array(Image.open(image_path))
-                yield image, file.split(".")[0]
+                image_paths.append(image_path)
+                article_id = int(file.split(".")[0])
+                labels.append(df[df["article_id"] == article_id])
+
+    return image_paths, labels
 
 class ImageDataset(torch.utils.data.Dataset):
-    def __init__(self, data_dir, article_ids, processor=None):
-        self.data_dir = data_dir
+    def __init__(self, image_paths, labels, processor=None):
+        self.image_paths = image_paths
+        self.labels = labels
         self.processor = processor
-        # self.resize = resize
         self.image_ids = []
-        self.image_paths = []
 
-        for article_id in article_ids:
-            image_path = f"{data_dir}/images/0{str(article_id)[:2]}/0{article_id}.jpg"
-            if os.path.exists(image_path):
-                self.image_ids.append(article_id)
-                self.image_paths.append(image_path)
+        for image_path in self.image_paths:
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"Image {image_path} not found.")
+            else:
+                image_id = int(image_path.split("/")[-1].split(".")[0])
+                self.image_ids.append(image_id)
+            
 
     def __len__(self):
         return len(self.image_paths)
