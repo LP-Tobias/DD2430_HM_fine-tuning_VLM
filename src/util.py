@@ -20,6 +20,13 @@ def hf_clip_predict(model, processor, text_labels, images):
     probs = logits_per_image.softmax(dim=1)
     return probs
 
+def get_image_paths_and_labels_from_df(df, data_dir):
+    article_ids = df["article_id"].values
+    image_paths = [f"{data_dir}/images/0{str(article_id)[:2]}/0{article_id}.jpg" for article_id in article_ids]
+    labels = [df[df["article_id"] == article_id] for article_id in article_ids]
+
+    return image_paths, labels
+
 def get_image_paths_and_labels_ordered(df, data_dir):
     article_ids = df["article_id"].values
     image_paths = []
@@ -46,9 +53,8 @@ def get_image_paths_and_labels(df, data_dir):
     return image_paths, labels
 
 class ImageDataset(torch.utils.data.Dataset):
-    def __init__(self, image_paths, labels, processor=None):
+    def __init__(self, image_paths, processor=None):
         self.image_paths = image_paths
-        self.labels = labels
         self.processor = processor
         self.image_ids = []
 
