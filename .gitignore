@@ -3,3 +3,5 @@ data
 model
 wandb
 *.log
+/Transformer-MM-Explainability/
+/Transformer-MM-Explainability/*
