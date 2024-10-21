@@ -5,3 +5,4 @@ wandb
 *.log
 /Transformer-MM-Explainability/
 /Transformer-MM-Explainability/*
+CLIP

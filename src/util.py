@@ -22,8 +22,16 @@ def hf_clip_predict(model, processor, text_labels, images):
 
 def get_image_paths_and_labels_from_df(df, data_dir):
     article_ids = df["article_id"].values
-    image_paths = [f"{data_dir}/images/0{str(article_id)[:2]}/0{article_id}.jpg" for article_id in article_ids]
-    labels = [df[df["article_id"] == article_id] for article_id in article_ids]
+    image_paths = []
+    labels = []
+    
+    for article_id in article_ids:
+        image_path = f"{data_dir}/images/0{str(article_id)[:2]}/0{article_id}.jpg"
+        # Check if the image file exists
+        if os.path.exists(image_path):
+            image_paths.append(image_path)
+            # Add corresponding label only if the image exists
+            labels.append(df[df["article_id"] == article_id])
 
     return image_paths, labels
 
